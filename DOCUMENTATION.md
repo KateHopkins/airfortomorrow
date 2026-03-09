@@ -2,7 +2,7 @@
 
 **A product of UNICEF EAPRO's Frontier Data Lab.**
 
-Complete technical reference for the Air Quality Prediction System pipeline, including detailed workflows, configuration options, and advanced features.
+Technical reference for the Air for Tomorrow pipeline, including workflows and configuration options.
 
 ---
 
@@ -15,7 +15,7 @@ Complete technical reference for the Air Quality Prediction System pipeline, inc
    - [3. Himawari Satellite AOD Data](#3-himawari-satellite-aod-data)
    - [4. ERA5 Meteorological Data](#4-era5-meteorological-data)
    - [5. Silver Dataset Generation](#5-silver-dataset-generation)
-   - [6. Air Quality Prediction System](#6-air-quality-prediction-system)
+   - [6. Air for Tomorrow](#6-air-for-tomorrow)
 3. [Model Information](#model-information)
 4. [Docker Advanced](#docker-advanced)
 5. [Project Structure](#project-structure)
@@ -144,22 +144,22 @@ Run each pipeline individually to better monitor progress and handle errors:
 
 ```bash
 # 1. Collect air quality data
-./scripts/run_air_quality_integrated_pipeline.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-31 --countries THA LAO
+./scripts/run_air_quality_integrated_pipeline.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-30 --countries THA LAO
 
 # 2. Collect meteorological data
-./scripts/run_era5_idw_pipeline.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-31 --countries THA LAO
+./scripts/run_era5_idw_pipeline.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-30 --countries THA LAO
 
 # 3. Process fire detection data
-./scripts/run_firms_pipeline.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-31 --countries THA LAO
+./scripts/run_firms_pipeline.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-30 --countries THA LAO
 
 # 4. Process satellite AOD data - for period of times > 6months, it's recommended to run each step of this pipeline separately - check the himawari section for more details
-./scripts/run_himawari_integrated_pipeline.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-31 --countries THA LAO
+./scripts/run_himawari_integrated_pipeline.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-30 --countries THA LAO
 
 # 5. Generate silver dataset
-./scripts/make_silver.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-31 --countries THA LAO
+./scripts/make_silver.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-30 --countries THA LAO
 
 # 6. Generate predictions and maps
-./scripts/predict_air_quality.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-31 --countries THA LAO --generate-map
+./scripts/predict_air_quality.sh --mode historical --start-date 2023-01-01 --end-date 2023-06-30 --countries THA LAO --generate-map
 ```
 
 **Why separate for historical?**
@@ -174,7 +174,7 @@ Run each pipeline individually to better monitor progress and handle errors:
 
 ### 1. Air Quality Data
 
-**Integrated Pipeline** - Collects and processes data from both OpenAQ and AirGradient sensors in one command.
+**Integrated pipeline** - Collects and processes data from both OpenAQ and AirGradient sensors in one command.
 
 #### Basic Usage
 
@@ -201,7 +201,7 @@ H3-indexed parquet files ready for silver dataset generation:
 
 #### Key Features
 
-- **Smart Deduplication**: Prevents double-counting when sensors overlap (within 500m radius)
+- **Deduplication**: Prevents double-counting when sensors overlap (within 500m radius)
 - **Multi-source Integration**: Combines two complementary networks
 - **Quality Control**: Configurable thresholds and validation
 - **Source Tracking**: Maintains `pm25_source` field (openaq/airgradient)
@@ -525,7 +525,7 @@ ERA5 data comes on a coarse grid (0.25°) and is interpolated to the finer H3 gr
 - **Algorithm**: Inverse Distance Weighting for spatial interpolation
 - **Rings**: 10 rings for interpolation (configurable with `--idw-rings`)
 - **Weight Power**: 1.5 for distance weighting (configurable with `--idw-weight-power`)
-- **Output**: H3 resolution 8 hexagons (~665m² per cell)
+- **Output**: H3 resolution 8 hexagons (~0.74 km² per cell)
 
 #### Processing Modes
 
@@ -590,7 +590,7 @@ The ERA5 pipeline uses **three different data sources** depending on the time pe
 
 #### Separate processing steps 
 
-You can also run each step of the ERA5 pipeline independently - TO DO :
+You can also run each step of the ERA5 pipeline independently:
 
 ```bash
 - run_era5_realtime.sh
@@ -694,7 +694,7 @@ data/silver/
 
 ---
 
-### 6. Air Quality Prediction System
+### 6. Air for Tomorrow
 
 Uses pre-trained XGBoost model to predict PM2.5 concentrations from silver datasets.
 
@@ -742,7 +742,7 @@ Uses pre-trained XGBoost model to predict PM2.5 concentrations from silver datas
 
 #### Missing Value Handling
 
-The model handles missing data intelligently:
+Missing values are handled as follows:
 - **Fire features**: Fill with 0.0 (no fires)
 - **Weather features**: Fill with column mean
 - **Population**: Fill with 0.0
@@ -812,7 +812,7 @@ Validate predictions against ground truth sensor measurements:
 
 ### XGBoost Prediction System
 
-The Air Quality Prediction System uses an XGBoost regression model to predict PM2.5 concentrations.
+Air for Tomorrow uses an XGBoost regression model to predict PM2.5 concentrations.
 
 #### Model Details
 
@@ -820,7 +820,7 @@ The Air Quality Prediction System uses an XGBoost regression model to predict PM
 - **Target**: PM2.5 concentration (μg/m³) - log-transformed during training
 - **Features**: 21 features (8 base + 1 spatial context + 12 rolling averages)
 - **Model File**: `src/models/xgboost_model.json`
-- **Training Period**: 01/01/2022 to 30/09/2025
+- **Training Period**: 2021-12-31 to 2024-12-31
 - **Prediction Output**: Exponentiated log predictions, clipped to 0-500 μg/m³
 
 ### Air Quality Categories
@@ -847,7 +847,7 @@ The Docker container includes all required system dependencies:
 - **OpenMP**: Runtime library for XGBoost parallel processing
 - **jq**: JSON processor for configuration parsing
 - **yq**: YAML processor for reading configuration files
-- **Python 3.11**: Runtime environment with all packages from requirements.txt
+- **Python 3.10**: Runtime environment with all packages from requirements.txt
 
 ### Container Entrypoint
 
@@ -880,159 +880,7 @@ For development:
 
 ## Project Structure
 
-Complete directory structure with all files and subdirectories.
-
-### Overview
-
-```
-airfortomorrow/
-├── 📦 Docker & Environment
-│   ├── Dockerfile              # Multi-stage Docker build with all dependencies
-│   ├── entrypoint.sh           # Container entrypoint with command menu
-│   ├── env_template            # Environment variables template (rename to .env)
-│   ├── .dockerignore           # Docker build exclusions
-│   ├── requirements.txt        # Python dependencies
-│   ├── LICENSE                 # Project license
-│   └── captain-definition      # Deployment configuration
-│
-├── 🐍 Source Code
-│   ├── src/
-│   │   ├── data_collectors/    # Data collection modules
-│   │   │   ├── __init__.py
-│   │   │   ├── airgradient_collector.py
-│   │   │   ├── base_collector.py
-│   │   │   ├── era5_meteorological_idw.py
-│   │   │   ├── firms_data_collector.py
-│   │   │   ├── himawari_aod.py
-│   │   │   └── openaq_collector.py
-│   │   ├── data_processors/    # Data processing modules
-│   │   │   ├── era5_daily_aggregator.py
-│   │   │   ├── firms_data_processor.py
-│   │   │   ├── firms_kde_historical.py
-│   │   │   ├── firms_kde_interpolation.py
-│   │   │   ├── himawari_daily_aggregator.py
-│   │   │   ├── himawari_idw_interpolator.py
-│   │   │   ├── openaq_realtime_client.py
-│   │   │   ├── process_air_quality.py
-│   │   │   ├── process_himawari_h3_standard.py
-│   │   │   ├── process_himawari_h3_streaming.py
-│   │   │   └── s3_historical_data.py
-│   │   ├── models/             # Pre-trained XGBoost model
-│   │   │   └── xgboost_model.json
-│   │   ├── utils/              # Utility modules
-│   │   │   ├── __init__.py
-│   │   │   ├── boundary_utils.py
-│   │   │   ├── config_loader.py
-│   │   │   └── logging_utils.py
-│   │   ├── __init__.py
-│   │   ├── air_quality_integrated_pipeline.py   # Air quality data sub-pipeline (OpenAQ + AirGradient)
-│   │   ├── collect_airgradient_data.py          # AirGradient data collection
-│   │   ├── collect_openaq_data.py               # OpenAQ data collection
-│   │   ├── era5_integrated_pipeline_idw.py      # ERA5 meteorological data sub-pipeline
-│   │   ├── himawari_integrated_pipeline.py      # Himawari AOD sub-pipeline
-│   │   ├── make_silver.py                       # Silver dataset generation
-│   │   ├── plot_pm25_distribution.py            # Data visualization
-│   │   ├── predict_air_quality.py               # Air quality prediction system
-│   │   ├── run_complete_pipeline.py             # Complete end-to-end pipeline
-│   │   └── sensor_validation.py                 # Validation of predictions vs ground truth
-│   └── scripts/                # Shell scripts for all workflows
-│       ├── collect_airgradient_data.sh
-│       ├── collect_openaq_historical.sh
-│       ├── collect_openaq_realtime.sh
-│       ├── make_silver.sh
-│       ├── predict_air_quality.sh
-│       ├── process_air_quality.sh
-│       ├── process_firms_data.sh
-│       ├── run_air_quality_integrated_pipeline.sh
-│       ├── run_complete_pipeline.sh
-│       ├── run_era5_idw_pipeline.sh
-│       ├── run_era5_realtime.sh
-│       ├── run_firms_kde_historical.sh
-│       ├── run_firms_kde.sh
-│       ├── run_firms_pipeline.sh
-│       ├── run_himawari_aod_historical.sh
-│       ├── run_himawari_aod_realtime.sh
-│       ├── run_himawari_daily_aggregator.sh
-│       ├── run_himawari_idw.sh
-│       ├── run_himawari_integrated_pipeline.sh
-│       ├── setup.sh
-│       └── utils/              # Script utilities
-│           ├── common.sh
-│           ├── config_reader.sh
-│           └── date_validator.py
-│
-├── 📊 Data & Assets
-│   ├── data/                   # All data outputs (volume mounted, created on first run)
-│   │   ├── raw/                # Raw collected data
-│   │   │   ├── openaq/         # OpenAQ ground station data
-│   │   │   ├── airgradient/    # AirGradient sensor data
-│   │   │   ├── himawari/       # Raw Himawari satellite NetCDF files
-│   │   │   ├── firms/          # NASA FIRMS fire detection data
-│   │   │   │   ├── historical/ # Historical fire data archives
-│   │   │   │   └── nrt/        # Near real-time fire data
-│   │   │   └── era5/           # ERA5 meteorological raw data
-│   │   ├── processed/          # Processed data outputs
-│   │   │   ├── airquality/     # Processed air quality data (OpenAQ + AirGradient)
-│   │   │   │   ├── realtime/
-│   │   │   │   └── historical/
-│   │   │   ├── himawari/       # Himawari satellite AOD processed data
-│   │   │   │   ├── tif/        # Georeferenced TIF files
-│   │   │   │   ├── h3_hourly/  # Hourly H3-indexed data
-│   │   │   │   ├── daily_aggregated/  # Daily aggregations
-│   │   │   │   └── interpolated/      # IDW interpolated outputs
-│   │   │   ├── firms/          # FIRMS fire detection processed data
-│   │   │   │   ├── h3/         # H3-indexed fire density
-│   │   │   │   ├── plots/      # Fire density heatmaps
-│   │   │   │   └── kde/        # KDE interpolation grids (optional)
-│   │   │   └── era5/           # ERA5 meteorological processed data
-│   │   │       ├── daily_aggregated/
-│   │   │       └── interpolated/      # IDW interpolated outputs
-│   │   ├── silver/             # Unified silver datasets (all sources combined)
-│   │   │   ├── realtime/       # Real-time silver datasets
-│   │   │   └── historical/     # Historical silver datasets
-│   │   ├── predictions/        # Air quality predictions & visualizations
-│   │   │   ├── data/           # Prediction parquet files
-│   │   │   │   ├── realtime/   # Real-time predictions
-│   │   │   │   └── historical/ # Historical predictions
-│   │   │   ├── map/            # Generated AQI maps
-│   │   │   │   ├── realtime/   # Real-time maps
-│   │   │   │   └── historical/ # Historical maps
-│   │   │   ├── distribution/   # PM2.5 distribution charts
-│   │   │   ├── scatter/        # Validation scatter plots
-│   │   │   ├── validation_map/ # Enhanced validation maps (predictions + sensors)
-│   │   │   └── validation_data/ # Validation metrics and results
-│   │   ├── cache/              # Processing cache (temporary files)
-│   │   │   ├── himawari/       # Cached Himawari processing files
-│   │   │   ├── silver/         # Cached silver dataset components
-│   │   │   └── silver_chunks_*/  # Temporary chunked silver data
-│   │   ├── logs/               # Processing logs
-│   │   ├── models/             # Model training outputs
-│   │   └── features/           # Feature engineering outputs
-│   └── assets/                 # Static datasets (volume mounted)
-│       ├── worldpop/           # Population density data (H3-indexed)
-│       │   └── LAO_THA_worldpop_h3_08.csv
-│       └── sensor_lists/       # Sensor network configurations
-│           └── airgradient_sensor_list.csv
-│
-├── 📓 Notebooks & Examples
-│   ├── notebooks/              # Jupyter notebooks for analysis
-│   │   └── Model Experiments.ipynb
-│   └── viz_examples/           # Example visualization outputs
-│       ├── CDS-registration-example.png
-│       ├── enhanced_aqi_map_20240102_LAO_THA.png
-│       ├── firms_kde_plot_THA_LAO_20240201.png
-│       ├── himawari-registration-example.png
-│       ├── openaq_api.png
-│       └── pm25_distribution_20240102_LAO_THA.png
-│
-└── ⚙️ Configuration & Documentation
-    ├── config/                 # Configuration files (volume mounted)
-    │   └── config.yaml         # Main configuration file
-    ├── logs/                   # Application logs (volume mounted, created on first run)
-    ├── README.md               # Main documentation
-    └── DOCUMENTATION.md        # This file (technical reference)
-
-```
+Use the high-level project map in `README.md` for the current repository layout.
 
 ### Key Notes
 
