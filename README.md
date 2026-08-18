@@ -1,3 +1,7 @@
+# Modified from the original AirForTomorrow project for use with
+# Singapore air-quality monitoring data.
+# Modified: August 2026
+
 # 🌏 Air for Tomorrow
 
 [![CI](https://github.com/unicef/airfortomorrow/actions/workflows/tests.yml/badge.svg)](https://github.com/unicef/airfortomorrow/actions/workflows/tests.yml)
