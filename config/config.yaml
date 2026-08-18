@@ -10,11 +10,11 @@
 system:
   # Default geographic region
   countries:
-    default: ["THA", "LAO"]  # ISO3 codes - single source of truth
+    default: ["SGP"]  # ISO3 codes - single source of truth
     # Country-specific mappings for different data sources
     mappings:
-      openaq_numeric: {"LAO": 68, "THA": 111}  # OpenAQ API numeric codes
-      iso3_codes: {"LAO": "LAO", "THA": "THA"}  # For geoBoundaries and most APIs
+      openaq_numeric: {"SGP": 231}  # OpenAQ API numeric codes
+      iso3_codes: {"SGP": "SGP"}  # For geoBoundaries and most APIs
       
   # Default time windows
   time_windows:
@@ -42,7 +42,7 @@ system:
 data_collection:
   # Data source specific settings
   openaq:
-    countries: [68, 111]  # Thailand=111, Laos=68 (API numeric codes)
+    countries: [231]  # Thailand=111, Laos=68 (API numeric codes)
     indicators: ["pm25"]
     rate_limit_requests_per_minute: 60
     batch_size: 10
@@ -50,7 +50,7 @@ data_collection:
     measurements_limit: 1000
 
   airgradient:
-    countries: ["LAO", "THA"]  # ISO codes for geoBoundaries
+    countries: ["SGP"]  # ISO codes for geoBoundaries
     base_url: "https://api.airgradient.com/public/api/v1"
     endpoints:
       current: "/world/locations/measures/current"
@@ -69,7 +69,7 @@ data_collection:
       pm25_max: 1000
 
   himawari:
-    countries: ["LAO", "THA"]
+    countries: ["SGP"]
     parameters: ["AOD"]
     ftp_settings:
       server: "ftp.ptree.jaxa.jp"
@@ -79,7 +79,7 @@ data_collection:
       chunk_size: 32
       
   era5:
-    countries: ["LAO", "THA"]
+    countries: ["SGP"]
     parameters: ["2d", "2t", "10u", "10v"]  # Dewpoint, temp, wind u/v
     forecast_steps: [0, 6, 12, 18, 24]  # Hours
     h3_resolution_coarse: 4
@@ -103,7 +103,7 @@ data_collection:
       retry_delay_base: 60  # Base delay for retries (seconds)
     
   firms:
-    countries: ["LAO", "THA"]
+    countries: ["SGP"]
     sources: ["VIIRS", "MODIS"]
     kde_settings:
       bandwidth_factor: 0.3
